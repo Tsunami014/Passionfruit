@@ -1,4 +1,6 @@
-import os, time
+import os
+import time
+import difflib
 
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
@@ -46,8 +48,9 @@ def read_key():
     ch = getch()
     if isinstance(ch, bytes): # Windows
         if ch in (b"\x00", b"\xe0"):
-            return {b"H": "up", b"P": "down", b"K": "left", b"M": "right",
-                    b"s": "cleft", b"t": "cright", b"S": "del"
+            return {
+                b"H": "up", b"P": "down", b"K": "left", b"M": "right",
+                b"s": "cleft", b"t": "cright", b"S": "del"
             }.get(getch(), "")
         ch = ch.decode(errors="ignore")
         return {"\x08": "bs", "\x7f": "cbs"}.get(ch, ch)
@@ -55,8 +58,9 @@ def read_key():
         seq = ""
         while not (seq[-1:].isalpha() or seq[-1:] == "~"):
             seq += getch()
-        return {"A": "up", "B": "down", "C": "right", "D": "left",
-                "1;5C": "cright", "1;5D": "cleft", "3~": "del"
+        return {
+            "A": "up", "B": "down", "C": "right", "D": "left",
+            "1;5C": "cright", "1;5D": "cleft", "3~": "del"
         }.get(seq, "")
     return {"\x7f": "bs", "\x08": "cbs"}.get(ch, ch)
 
@@ -72,16 +76,21 @@ COMMANDS = {
     "exit": (None, "Exit the terminal"),
 }
 
+print("Run 'help' for a list of all posible commands")
 history = []
 while True:
+    print()
     buf = ""
     pos = 0
     h = len(history)
     while True:
         desc = (COMMANDS[c][1] if (c := s.split(' ')[0]) in COMMANDS else None) if (s := buf.strip()) else ""
-        promptcol = f"\033[{91 if desc is None else 92}m"
-        prompt = f"/ {promptcol}$\033[0m "
-        print(f"\n  {promptcol}{desc if desc is not None else "unknown command"}\x1b[K\033[0m\033[1A\r{prompt}{buf}\x1b[K{'\b'*(len(buf) - pos)}", end="", flush=True)
+        print(
+            (f"\n    \033[{91 if desc is None else 95}m└─ {desc if desc is not None else "unknown command"}" if desc != "" else "")+
+            "\x1b[K\033[0m\033[1A\r"
+            f"/ \033[{91 if desc is None else 92}m$\033[0m "
+            f"{buf}\x1b[K{'\b'*(len(buf) - pos)}",
+        end="", flush=True)
         k = read_key()
         if k in ("\r", "\n"):
             print()
@@ -134,6 +143,14 @@ while True:
         continue
     history.append(buf)
     cmd, *args = buf.split()
-    out = COMMANDS[cmd][0](args) if cmd in COMMANDS else f"{cmd}: command not found"
-    if out:
-        print(out)
+    if cmd in COMMANDS:
+        out = COMMANDS[cmd][0](args)
+        if out:
+            print(out)
+    else:
+        print("  Command not found:\033[1m",cmd, end="\033[0m\n")
+        closest = difflib.get_close_matches(cmd, COMMANDS.keys(), n=1, cutoff=0.6)
+        if closest:
+            print("  Did you mean:\033[1m", closest[0], end="\033[0m\n")
+        else:
+            print("  Run 'help' for a list of all posible commands")
