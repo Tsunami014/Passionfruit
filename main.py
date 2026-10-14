@@ -79,14 +79,13 @@ COMMANDS = {
 print("Run 'help' for a list of all posible commands")
 history = []
 while True:
-    print()
     buf = ""
     pos = 0
     h = len(history)
     while True:
         desc = (COMMANDS[c][1] if (c := s.split(' ')[0]) in COMMANDS else None) if (s := buf.strip()) else ""
         print(
-            (f"\n    \033[{91 if desc is None else 95}m└─ {desc if desc is not None else "unknown command"}" if desc != "" else "")+
+            (f"\n    \033[{91 if desc is None else 95}m└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n")+
             "\x1b[K\033[0m\033[1A\r"
             f"/ \033[{91 if desc is None else 92}m$\033[0m "
             f"{buf}\x1b[K{'\b'*(len(buf) - pos)}",
@@ -101,7 +100,7 @@ while True:
             h = len(history)
             print("^C")
         elif k == "\x04": # Ctrl+D
-            print()
+            print("^D")
             buf = "exit"
             break
         elif k == "bs" and pos:
