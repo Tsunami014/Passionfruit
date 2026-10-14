@@ -60,16 +60,32 @@ def read_key():
         }.get(seq, "")
     return {"\x7f": "bs", "\x08": "cbs"}.get(ch, ch)
 
-def readline(prompt, history):
+
+COMMANDS = {
+    "help": ((lambda a: "Commands: help, echo, date, whoami, ls, clear, exit"), "Print help info"),
+    "echo": ((lambda a: " ".join(a)), "Echoes text"),
+    "date": ((lambda a: time.strftime("%a %b %d %H:%M:%S %Y")), "Print date stuff"),
+    "whoami": ((lambda a: "guest"), "Print who you are logged in as"),
+    "ls": ((lambda a: "documents  downloads  notes.txt  pictures"), "Display the current directory"),
+    "clear": ((lambda a: print("\x1b[2J\x1b[H", end="") or ""), "Clear the display"),
+
+    "exit": (None, "Exit the terminal"),
+}
+
+history = []
+while True:
     buf = ""
     pos = 0
     h = len(history)
     while True:
-        print(f"\r{prompt}{buf}\x1b[K{'\b'*(len(buf) - pos)}", end="", flush=True)
+        desc = (COMMANDS[c][1] if (c := s.split(' ')[0]) in COMMANDS else None) if (s := buf.strip()) else ""
+        promptcol = f"\033[{91 if desc is None else 92}m"
+        prompt = f"/ {promptcol}$\033[0m "
+        print(f"\n  {promptcol}{desc if desc is not None else "unknown command"}\x1b[K\033[0m\033[1A\r{prompt}{buf}\x1b[K{'\b'*(len(buf) - pos)}", end="", flush=True)
         k = read_key()
         if k in ("\r", "\n"):
             print()
-            return buf
+            break
         elif k == "\x03": # Ctrl+C
             buf = ""
             pos = 0
@@ -77,7 +93,8 @@ def readline(prompt, history):
             print("^C")
         elif k == "\x04": # Ctrl+D
             print()
-            return None
+            buf = "exit"
+            break
         elif k == "bs" and pos:
             buf, pos = buf[:pos - 1] + buf[pos:], pos - 1
         elif k == "del":
@@ -110,24 +127,13 @@ def readline(prompt, history):
             buf, pos = buf[:pos] + k + buf[pos:], pos + 1
 
 
-COMMANDS = {
-    "help":   lambda a: "Commands: help, echo, date, whoami, ls, clear, exit",
-    "echo":   lambda a: " ".join(a),
-    "date":   lambda a: time.strftime("%a %b %d %H:%M:%S %Y"),
-    "whoami": lambda a: "guest",
-    "ls":     lambda a: "documents  downloads  notes.txt  pictures",
-    "clear":  lambda a: print("\x1b[2J\x1b[H", end="") or "",
-}
-
-history = []
-while True:
-    line = readline("guest@pretend:~$ ", history)
-    if line is None or line.strip() == "exit":
+    print(end="\033[2K")
+    if buf.strip() == "exit":
         break
-    if not line.strip():
+    if not buf.strip():
         continue
-    history.append(line)
-    cmd, *args = line.split()
-    out = COMMANDS[cmd](args) if cmd in COMMANDS else f"{cmd}: command not found"
+    history.append(buf)
+    cmd, *args = buf.split()
+    out = COMMANDS[cmd][0](args) if cmd in COMMANDS else f"{cmd}: command not found"
     if out:
         print(out)
