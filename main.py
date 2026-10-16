@@ -14,13 +14,24 @@ while True:
     pos = 0
     h = len(history)
     while True:
-        desc = (COMMANDS[c][1][1:] if (c := s.split(' ')[0]) in COMMANDS else None) if (s := buf.strip()) else ""
+        suggest = None
+        if s := buf.strip():
+            cmd = s.split(' ')[0]
+            desc = COMMANDS[cmd][1][1:] if cmd in COMMANDS else None
+            if pos == len(buf):
+                for c in sorted(COMMANDS.keys()):
+                    if c.startswith(cmd):
+                        suggest = c
+                        break
+        else:
+            desc = ""
+        sugtxt = suggest[len(s):] if suggest else ''
         col = f"\033[{91 if desc is None else (95 if desc else 37)}m"
         print(
             (f"\n{' '*(3+len(pth))}{col}└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n")+
-            "\x1b[K\033[0m\033[1A\r"
+            "\033[K\033[0m\033[1A\r"
             f"\033[92m{pth}\033[0m {col}$\033[0m "
-            f"{buf}\x1b[K{'\b'*(len(buf) - pos)}",
+            f"{buf}\033[37m{sugtxt}\033[0m\033[K{'\b'*(len(buf) - pos + len(sugtxt))}",
         end="", flush=True)
         k = read_key()
         if k in ("\r", "\n"):
@@ -35,6 +46,10 @@ while True:
             print("^D")
             buf = "exit"
             break
+        elif k == "\t":
+            if suggest:
+                buf = suggest
+                pos = len(buf)
         elif k == "bs" and pos:
             buf, pos = buf[:pos - 1] + buf[pos:], pos - 1
         elif k == "del":

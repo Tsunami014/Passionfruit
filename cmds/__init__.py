@@ -38,7 +38,7 @@ COMMANDS = {
     "exit": (None, "sExit the terminal"),
 
     # Navigation
-    "pwd": ((lambda d, _: d),
+    "pwd": ((lambda d, _: "  "+d),
         "nShows the path to the current directory"),
     "ls": ((lambda d, a: "documents  downloads  notes.txt  pictures"),
         "nList the contents of the current directory"),
