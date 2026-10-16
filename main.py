@@ -1,80 +1,10 @@
 import os
-import time
 import difflib
+from cmds import COMMANDS
+from read import read_key
 
-class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
-
-    def __call__(self): return self.impl()
-
-
-class _GetchUnix:
-    def __init__(self):
-        import tty, sys
-
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-
-
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
-
-
-getch = _Getch()
 os.system("")  # lets Windows terminals understand ANSI escape codes
 
-
-def read_key():
-    """Returns a single character, or a name like 'up', 'cleft', 'bs', 'cbs'."""
-    ch = getch()
-    if isinstance(ch, bytes): # Windows
-        if ch in (b"\x00", b"\xe0"):
-            return {
-                b"H": "up", b"P": "down", b"K": "left", b"M": "right",
-                b"s": "cleft", b"t": "cright", b"S": "del"
-            }.get(getch(), "")
-        ch = ch.decode(errors="ignore")
-        return {"\x08": "bs", "\x7f": "cbs"}.get(ch, ch)
-    if ch == "\x1b" and getch() == "[": # Unix arrow keys etc.
-        seq = ""
-        while not (seq[-1:].isalpha() or seq[-1:] == "~"):
-            seq += getch()
-        return {
-            "A": "up", "B": "down", "C": "right", "D": "left",
-            "1;5C": "cright", "1;5D": "cleft", "3~": "del"
-        }.get(seq, "")
-    return {"\x7f": "bs", "\x08": "cbs"}.get(ch, ch)
-
-
-COMMANDS = {
-    "help": ((lambda a: "Commands: help, echo, date, whoami, ls, clear, exit"), "Print help info"),
-    "echo": ((lambda a: " ".join(a)), "Echoes text"),
-    "date": ((lambda a: time.strftime("%a %b %d %H:%M:%S %Y")), "Print date stuff"),
-    "whoami": ((lambda a: "guest"), "Print who you are logged in as"),
-    "ls": ((lambda a: "documents  downloads  notes.txt  pictures"), "Display the current directory"),
-    "clear": ((lambda a: print("\x1b[2J\x1b[H", end="") or ""), "Clear the display"),
-
-    "exit": (None, "Exit the terminal"),
-}
 
 print("Run 'help' for a list of all posible commands")
 history = []
