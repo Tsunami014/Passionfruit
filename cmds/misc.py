@@ -1,40 +1,24 @@
 from itertools import batched
 from random import choice
 
-def mkWriter(OPTS, info):
-    info = info.strip()
-    def fn(*_):
-        print(info)
-        input("Ctrl+C to quit, enter to begin")
-        print(end="\033[1A\033[K")
-        while True:
-            print(f'\033[1m{choice(OPTS).strip()}\033[0m')
-            try:
-                input("> ")
-            except KeyboardInterrupt:
-                print()
-                break
-    return fn
+def vague(*_):
+    with open('data/vague.txt') as f:
+        fc = f.read()
+    opts = list(batched(fc.split('\n---\n'), 2))
+    ays, bs = choice(opts)
+    ays, bs = ([i for i in l.split('\n') if i] for l in (ays, bs.lower()))
+    a, b = choice(ays), choice(bs)
+    try:
+        input(f"How many/much do you think is...\n\033[1m{a} {b}\033[0m? > ")
+    except KeyboardInterrupt:
+        print("^C")
 
-OPTS = []
-with open('data/vague.txt') as f:
-    fc = f.read()
-    for ays, b in batched(fc.split('\n---\n'), 2):
-        bs = [i for i in b.lower().split('\n') if i]
-        for a in ays.split('\n'):
-            if not a:
-                continue
-            OPTS.extend([a+' '+i for i in bs])
-
-vague = mkWriter(OPTS, """
-Press enter to generate a "vague amount", then write down how much/many you would associate with that.
-""")
-
-with open('data/wordlist.txt') as f:
-    OPTS = f.readlines()
-assocs = mkWriter(OPTS, """
-Press enter to generate a word, then write down the first thing that comes to your mind when you read it!
-You can write multiple if you want, it's just for you. Also don't worry if you don't know what a word means, just skip it.
-""")
-
-del OPTS
+def assocs(*_):
+    try:
+        print("What is the first thing that comes to mind when you see the word:")
+        input("(Enter to reveal word)")
+        with open('data/wordlist.txt') as f:
+            print("\033[1A\r\033[1m"+choice(f.readlines()).strip()+"\033[0m\033[K")
+        input("> ")
+    except KeyboardInterrupt:
+        pass
