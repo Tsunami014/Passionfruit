@@ -2,6 +2,7 @@ import time
 from itertools import zip_longest
 
 import dir
+from . import choose
 from .misc import vague, assocs, react
 from .colours import colAssoc
 
@@ -65,4 +66,6 @@ COMMANDS = {
         "!Write down the first thing that comes to your mind"),
     "react": (react,
         "!Agree/disagree to statements as fast as you can"),
+    "choose": (choose.main,
+        "!Choose between multiple options through 1v1 matches"),
 }
