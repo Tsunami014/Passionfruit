@@ -16,7 +16,7 @@ def vague(_):
 
 def assocs(_):
     try:
-        print("What is the first thing that comes to mind when you see the word:")
+        print("What is the first thing(s) that come to mind when you see the word:")
         wait("(Enter to reveal word)")
         with open('data/wordlist.txt') as f:
             word = choice(f.readlines()).strip()
