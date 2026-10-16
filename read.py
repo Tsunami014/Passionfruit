@@ -55,3 +55,17 @@ def read_key():
             "1;5C": "cright", "1;5D": "cleft", "3~": "del"
         }.get(seq, "")
     return {"\x7f": "bs", "\x08": "cbs"}.get(ch, ch)
+
+def wait(*prints, wait_for='\r\n'):
+    if prints:
+        print(*prints, end="", flush=True)
+    while True:
+        k = read_key()
+        if len(k) == 1 and k in wait_for:
+            return k
+        elif k == "\x03": # Ctrl+C
+            print("^C")
+            raise KeyboardInterrupt
+        elif k == "\x04": # Ctrl+D
+            print("^D")
+            raise EOFError

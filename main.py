@@ -18,7 +18,7 @@ while True:
         suggest = None
         if s := buf.strip():
             cmd = s.split(' ')[0]
-            desc = COMMANDS[cmd][1][1:] if cmd in COMMANDS else None
+            desc = COMMANDS[cmd][1].lstrip('-')[1:] if cmd in COMMANDS else None
             if pos == len(buf):
                 for c in sorted(COMMANDS.keys()):
                     if c.startswith(cmd):
