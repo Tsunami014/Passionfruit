@@ -8,16 +8,18 @@ os.system("")  # lets Windows terminals understand ANSI escape codes
 
 print("Run 'help' for a list of all posible commands")
 history = []
+pth = '/'
 while True:
     buf = ""
     pos = 0
     h = len(history)
     while True:
-        desc = (COMMANDS[c][1] if (c := s.split(' ')[0]) in COMMANDS else None) if (s := buf.strip()) else ""
+        desc = (COMMANDS[c][1][1:] if (c := s.split(' ')[0]) in COMMANDS else None) if (s := buf.strip()) else ""
+        col = f"\033[{91 if desc is None else (95 if desc else 37)}m"
         print(
-            (f"\n    \033[{91 if desc is None else 95}m└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n")+
+            (f"\n{' '*(3+len(pth))}{col}└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n")+
             "\x1b[K\033[0m\033[1A\r"
-            f"/ \033[{91 if desc is None else 92}m$\033[0m "
+            f"\033[92m{pth}\033[0m {col}$\033[0m "
             f"{buf}\x1b[K{'\b'*(len(buf) - pos)}",
         end="", flush=True)
         k = read_key()
@@ -73,7 +75,7 @@ while True:
     history.append(buf)
     cmd, *args = buf.split()
     if cmd in COMMANDS:
-        out = COMMANDS[cmd][0](args)
+        out = COMMANDS[cmd][0](pth, args)
         if out:
             print(out)
     else:
