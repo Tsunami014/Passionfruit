@@ -1,6 +1,7 @@
 import math
 import random
 import numpy as np
+import dir
 
 def sigmoid(x):
     return 1.0 / (1.0 + math.exp(-x))
@@ -150,22 +151,20 @@ def should_stop(n, num_asked, next_pair):
 
 
 
-def main(a):
-    import tempfile
-    import os
-    import subprocess
-    tmpdir = tempfile.gettempdir()
-    os.chdir(tmpdir)
-    file = os.path.join(tmpdir, "pear-choices.txt")
-    subprocess.run(["nvim", file])
-    with open(file) as f:
-        choices = f.read()
+CHOICES_FILE = '/choices.txt'
+def main(items):
+    if not items:
+        dir.ensure_exists(CHOICES_FILE)
+        dir.edit((CHOICES_FILE,))
+        choices = dir.cat((CHOICES_FILE,))
+        if choices is None:
+            return
+        items = choices.split('\n')
 
-    items = [t for i in choices.split('\n') if (t := i.strip())]
+    items = [t for i in items if (t := i.strip())]
     if len(items) == 0:
-        raise ValueError(
-            "No items available!"
-        )
+        print("\033[91mNo items!\033[0m")
+        return
 
     mxitln = max(len(i) for i in items)
     mxmidln = 2

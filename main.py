@@ -3,10 +3,14 @@ import difflib
 from cmds import COMMANDS
 from read import read_key
 import dir
+import re
 
 os.chdir(os.path.abspath(os.path.join(__file__, "..")))
 os.system("")  # lets Windows terminals understand ANSI escape codes
 
+PARSE_CMD_RE = re.compile(r'"((?:\\\\|\\"|[^"])+)"|([^ ]+)')
+def parse_cmd(buf):
+    return [it for m in PARSE_CMD_RE.finditer(buf) for it in m.groups() if it is not None]
 
 print("Run 'help' for a list of all posible commands")
 history = []
@@ -17,7 +21,7 @@ while True:
     while True:
         suggest = None
         if s := buf.strip():
-            cmd = s.split(' ')[0]
+            cmd = parse_cmd(s)[0]
             desc = COMMANDS[cmd][1].lstrip('-')[1:] if cmd in COMMANDS else None
             if pos == len(buf):
                 for c in sorted(COMMANDS.keys()):
@@ -84,12 +88,13 @@ while True:
 
 
     print(end="\033[2K")
-    if buf.strip() == "exit":
+    buf = buf.strip()
+    if buf == "exit":
         break
-    if not buf.strip():
+    if not buf:
         continue
     history.append(buf)
-    cmd, *args = buf.split()
+    cmd, *args = parse_cmd(buf)
     if cmd in COMMANDS:
         out = COMMANDS[cmd][0](args)
         if out:

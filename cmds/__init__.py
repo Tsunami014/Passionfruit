@@ -53,6 +53,7 @@ COMMANDS = {
     "cd": ((lambda _: "Nowhere to go!"),
         "-nChange the current directory"),
     "rm": (dir.rm, "nRemove a file"),
+    "cat": (dir.cat, "nPrint the contents of a file"),
     "edit": (dir.edit, "nEdit the contents of a file"),
 
     # Fun!

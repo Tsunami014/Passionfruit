@@ -5,11 +5,25 @@ root = os.path.abspath(os.path.join(os.getcwd(), "config"))
 if not os.path.exists(root):
     os.mkdir(root)
 
+def parse_pth(pth):
+    if pth.startswith('/'):
+        pth = '.'+pth
+    return os.path.abspath(os.path.join(root, pth))
+
+def ensure_exists(pth):
+    fpth = parse_pth(pth)
+    if os.path.isdir(fpth):
+        os.makedirs(fpth, exist_ok=True)
+    else:
+        os.makedirs(os.path.dirname(fpth), exist_ok=True)
+        with open(fpth, "a"):
+            pass
+
 def ls(a):
     if not a:
-        a = ('./',)
+        a = ('/',)
     for pth in a:
-        fpth = os.path.abspath(os.path.join(root, pth))
+        fpth = parse_pth(pth)
         if not fpth.startswith(root):
             print("\033[91mPath outside root:\033[0m", pth)
         elif not os.path.exists(fpth):
@@ -27,7 +41,7 @@ def rm(a):
         print("\033[91mNo files provided!\033[0m")
         return
     for pth in a:
-        fpth = os.path.abspath(os.path.join(root, pth))
+        fpth = parse_pth(pth)
         if not fpth.startswith(root):
             print("\033[91mPath outside root:\033[0m", pth)
         elif not os.path.exists(fpth):
@@ -37,6 +51,25 @@ def rm(a):
         else:
             os.remove(fpth)
 
+def cat(a):
+    if not a:
+        print("\033[91mNo file provided!\033[0m")
+        return
+    if len(a) > 1:
+        print("\033[91mToo many files provided!\033[0m")
+        return
+    pth = a[0]
+    fpth = parse_pth(pth)
+    if not fpth.startswith(root):
+        print("\033[91mPath outside root:\033[0m", pth)
+    elif not os.path.exists(fpth):
+        print("\033[91mPath does not exist:\033[0m", pth)
+    elif os.path.isdir(fpth):
+        print("\033[91mPath is a directory:\033[0m", pth)
+    else:
+        with open(fpth) as f:
+            return f.read()
+
 def edit(a):
     if not a:
         print("\033[91mNo file provided!\033[0m")
@@ -45,7 +78,7 @@ def edit(a):
         print("\033[91mToo many files provided!\033[0m")
         return
     pth = a[0]
-    fpth = os.path.abspath(os.path.join(root, pth))
+    fpth = parse_pth(pth)
     if not fpth.startswith(root):
         print("\033[91mPath outside root:\033[0m", pth)
     elif not os.path.exists(fpth):
@@ -53,4 +86,6 @@ def edit(a):
     elif os.path.isdir(fpth):
         print("\033[91mPath is a directory:\033[0m", pth)
     else:
-        print("TODO: This")
+        # TODO: This
+        import subprocess
+        subprocess.run(["nvim", fpth])
