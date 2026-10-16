@@ -1,3 +1,8 @@
+import builtins
+import shutil
+import math
+import re
+
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
 screen."""
@@ -11,10 +16,13 @@ screen."""
 
 class _GetchUnix:
     def __init__(self):
-        import tty, sys
+        import sys
+        import tty
 
     def __call__(self):
-        import sys, tty, termios
+        import termios
+        import sys
+        import tty
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -70,12 +78,62 @@ def wait(*prints, wait_for='\r\n'):
             print("^D")
             raise EOFError
 
+WP_Repl_Re = re.compile(r'\033\[[0-9;]+m')
+class WrapPrinter:
+    """Prints multiple lines of text and remembers how much they wrapped.
+    \5 inserts the cursor at that position.
+    This only works if this is the last thing being printed, there are no ansi in the text apart from colours, and there is no text on the same line as where this starts.
+    This handles clearing old text, no need for you to do that manually
+    """
+    def __init__(self):
+        self.oldtxt = ""
+
+    @staticmethod
+    def _getlndiff(txt, curidx, mxwid):
+        lastnl = txt.rfind('\n', 0, curidx)
+        col = (curidx-lastnl-1) % mxwid
+        lndiff = -1
+        for ln in txt[curidx-col:].replace('\5', '', 1).split('\n'):
+            lndiff += max(math.ceil(len(ln)/mxwid), 1)
+        return lndiff, col
+
+    def __call__(self, *parts, end="\n"):
+        mxwid = shutil.get_terminal_size().columns
+        if (cursidx := self.oldtxt.rfind('\5')) != -1:
+            lndiff, _ = self._getlndiff(self.oldtxt, cursidx, mxwid)
+            lndiff = -1-lndiff
+        else:
+            col = (len(self.oldtxt)-self.oldtxt.rfind('\n')-1) % mxwid
+            lndiff = int(col == 0)-1
+
+        for ln in self.oldtxt.replace('\5', '', 1).split('\n'):
+            lndiff += max(math.ceil(len(ln)/mxwid), 1)
+
+        up = '' if lndiff <= 0 else f'\033[{lndiff}A'
+        pref = up+'\r\033[J'
+
+        ntxt = ' '.join(parts)+end
+        ntxt = ntxt.replace('\5', '', ntxt.count('\5')-1)
+        vis = WP_Repl_Re.sub('', ntxt).rstrip('\5')
+        if (cursidx := vis.rfind('\5')) != -1:
+            curslndiff, col = self._getlndiff(vis, cursidx, mxwid)
+            up = '' if curslndiff <= 0 else f'\033[{curslndiff}A'
+            right = '' if col <= 0 else f'\033[{col}C'
+            print(pref+ntxt.replace('\5', '', 1)+'\r'+up+right, end="", flush=True)
+        else:
+            col = (len(vis)-vis.rfind('\n')-1) % mxwid
+            wrap = ' \r' if col == 0 else ''
+            print(pref+ntxt+wrap, end="", flush=True)
+
+        self.oldtxt = vis
+
 
 def newinp(prompt=""):
+    wp = WrapPrinter()
     buf = ""
     pos = 0
     while True:
-        print('\r'+prompt+buf+f"\033[K{'\b'*(len(buf) - pos)}", end="", flush=True)
+        wp(prompt+buf[:pos]+'\5'+buf[pos:], end="")
         k = read_key()
         if k in ("\r", "\n"):
             print()
@@ -106,9 +164,10 @@ def newinp(prompt=""):
             pos = max(0, pos - 1)
         elif k == "right":
             pos = min(len(buf), pos + 1)
+        elif k == "\t":
+            buf, pos = buf[:pos] + '    ' + buf[pos:], pos + 4
         elif len(k) == 1 and k.isprintable():
             buf, pos = buf[:pos] + k + buf[pos:], pos + 1
     return buf
 
-import builtins
 builtins.input = newinp
