@@ -3,6 +3,7 @@ import difflib
 from cmds import COMMANDS
 from read import read_key
 
+os.chdir(os.path.abspath(os.path.join(__file__, "..")))
 os.system("")  # lets Windows terminals understand ANSI escape codes
 
 
