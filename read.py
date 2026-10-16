@@ -69,3 +69,46 @@ def wait(*prints, wait_for='\r\n'):
         elif k == "\x04": # Ctrl+D
             print("^D")
             raise EOFError
+
+
+def newinp(prompt=""):
+    buf = ""
+    pos = 0
+    while True:
+        print('\r'+prompt+buf+f"\033[K{'\b'*(len(buf) - pos)}", end="", flush=True)
+        k = read_key()
+        if k in ("\r", "\n"):
+            print()
+            break
+        elif k == "\x03": # Ctrl+C
+            print("^C")
+            raise KeyboardInterrupt
+        elif k == "\x04": # Ctrl+D
+            print("^D")
+            raise EOFError
+        elif k == "bs" and pos:
+            buf, pos = buf[:pos - 1] + buf[pos:], pos - 1
+        elif k == "del":
+            buf = buf[:pos] + buf[pos + 1:]
+        elif k in ("cbs", "cleft"): # jump / delete back one word
+            i = pos
+            while i and buf[i - 1] == " ":
+                i -= 1
+            while i and buf[i - 1] != " ":
+                i -= 1
+            buf, pos = (buf[:i] + buf[pos:], i) if k == "cbs" else (buf, i)
+        elif k == "cright":
+            while pos < len(buf) and buf[pos] == " ":
+                pos += 1
+            while pos < len(buf) and buf[pos] != " ":
+                pos += 1
+        elif k == "left":
+            pos = max(0, pos - 1)
+        elif k == "right":
+            pos = min(len(buf), pos + 1)
+        elif len(k) == 1 and k.isprintable():
+            buf, pos = buf[:pos] + k + buf[pos:], pos + 1
+    return buf
+
+import builtins
+builtins.input = newinp
