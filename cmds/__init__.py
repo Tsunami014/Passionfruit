@@ -2,6 +2,7 @@ import time
 from itertools import zip_longest
 
 from .misc import vague, assocs
+from .colours import colAssoc
 
 def sortk(a):
     return (len(a), a)
@@ -63,6 +64,8 @@ COMMANDS = {
         "!Show who you are logged in as"),
     "vague": (vague,
         "!Come up with concrete amounts of vague quantities"),
-    "associations": (assocs,
+    "colassoc": (colAssoc,
+        "!Come up with colours for words"),
+    "assocs": (assocs,
         "!Write down the first thing that comes to your mind"),
 }
