@@ -28,6 +28,6 @@ Comma/dot - Brightness  |  Enter - Confirm
             w = min(w+1, 5)
     print(f"\033[3A{prompt}\033[K\n> {col}\033[K")
 
-def colAssoc(*_):
+def colAssoc(_):
     with open('data/colourables.txt') as f:
         choose_col(f"What colour would fit \033[1m{choice(f.readlines()).strip()}\033[0m?")

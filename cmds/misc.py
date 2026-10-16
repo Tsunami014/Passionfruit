@@ -2,7 +2,7 @@ from itertools import batched
 from random import choice
 from read import wait
 
-def vague(*_):
+def vague(_):
     with open('data/vague.txt') as f:
         fc = f.read()
     opts = list(batched(fc.split('\n---\n'), 2))
@@ -14,7 +14,7 @@ def vague(*_):
     except (KeyboardInterrupt, EOFError):
         print("^C")
 
-def assocs(*_):
+def assocs(_):
     try:
         print("What is the first thing that comes to mind when you see the word:")
         wait("(Enter to reveal word)")
@@ -26,7 +26,7 @@ def assocs(*_):
     except (KeyboardInterrupt, EOFError):
         pass
 
-def react(*_):
+def react(_):
     try:
         wait("(Enter to reveal statement, then press Y or N as fast as you can)")
         with open('data/reacts.txt') as f:

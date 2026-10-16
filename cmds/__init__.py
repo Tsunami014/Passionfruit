@@ -1,6 +1,7 @@
 import time
 from itertools import zip_longest
 
+import dir
 from .misc import vague, assocs, react
 from .colours import colAssoc
 
@@ -10,7 +11,6 @@ def sortk(a):
 CATEGORIES = {
     's': ('System', 33),
     'n': ('Navigation', 32),
-    'f': ('Files', 34),
     '!': ('Fun', 35),
 }
 
@@ -36,38 +36,26 @@ def help(*_):
 COMMANDS = {
     # System
     "help": (help, "sPrint every command"),
-    "echo": ((lambda _, a: ' '.join(a)),
+    "echo": ((lambda a: ' '.join(a)),
         "-sEchoes text"),
-    "repeat": ((lambda _, a: ' '.join(a)),
-        "sRepeat a command until Ctrl+C"),
-    "date": ((lambda *_: time.strftime("%a %b %d %H:%M:%S %Y")),
+    "repeat": (None, "sRepeat a command until Ctrl+C"),
+    "date": ((lambda _: time.strftime("%a %b %d %H:%M:%S %Y")),
         "-sShow the current date and time"),
-    "clear": ((lambda *_: print("\x1b[2J\x1b[H", end="")),
+    "clear": ((lambda _: print("\x1b[2J\x1b[H", end="")),
         "-sClear the display"),
     "exit": (None, "sExit the terminal"),
 
     # Navigation
-    "pwd": ((lambda d, _: "  "+d),
+    "pwd": ((lambda _: "  "+dir.PTH),
         "-nShows the path to the current directory"),
-    "ls": ((lambda d, a: "documents  downloads  TODO.txt  pictures"),
-        "nList the contents of the current directory"),
-    "cd": ((lambda d, a: "TODO"),
-        "nChange the current directory"),
-    "rm": ((lambda d, a: "TODO"),
-        "nRemove a file"),
-
-    # Files
-    "cp": ((lambda d, a: "TODO"),
-        "-fCopy a file"),
-    "mv": ((lambda d, a: "TODO"),
-        "-fMove or rename a file"),
-    "cat": ((lambda d, a: "TODO"),
-        "-fDisplay the contents of a file"),
-    "edit": ((lambda d, a: "TODO"),
-        "fEdit the contents of a file"),
+    "ls": (dir.ls, "nList the contents of the current directory"),
+    "cd": ((lambda _: "Nowhere to go!"),
+        "-nChange the current directory"),
+    "rm": (dir.rm, "nRemove a file"),
+    "edit": (dir.edit, "nEdit the contents of a file"),
 
     # Fun!
-    "whoami": ((lambda *_: "Whoever you want to be"),
+    "whoami": ((lambda _: "Whoever you want to be"),
         "-!Show who you are logged in as"),
     "vague": (vague,
         "!Come up with concrete amounts of vague quantities"),

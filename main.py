@@ -2,6 +2,7 @@ import os
 import difflib
 from cmds import COMMANDS
 from read import read_key
+import dir
 
 os.chdir(os.path.abspath(os.path.join(__file__, "..")))
 os.system("")  # lets Windows terminals understand ANSI escape codes
@@ -9,7 +10,6 @@ os.system("")  # lets Windows terminals understand ANSI escape codes
 
 print("Run 'help' for a list of all posible commands")
 history = []
-pth = '/'
 while True:
     buf = ""
     pos = 0
@@ -29,9 +29,9 @@ while True:
         sugtxt = suggest[len(s):] if suggest else ''
         col = f"\033[{91 if desc is None else (95 if desc else 37)}m"
         print(
-            (f"\n{' '*(3+len(pth))}{col}└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n")+
+            (f"\n{' '*(3+len(dir.PTH))}{col}└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n")+
             "\033[K\033[0m\033[1A\r"
-            f"\033[92m{pth}\033[0m {col}$\033[0m "
+            f"\033[92m{dir.PTH}\033[0m {col}$\033[0m "
             f"{buf}\033[37m{sugtxt}\033[0m\033[K{'\b'*(len(buf) - pos + len(sugtxt))}",
         end="", flush=True)
         k = read_key()
@@ -91,7 +91,7 @@ while True:
     history.append(buf)
     cmd, *args = buf.split()
     if cmd in COMMANDS:
-        out = COMMANDS[cmd][0](pth, args)
+        out = COMMANDS[cmd][0](args)
         if out:
             print(out)
     else:
