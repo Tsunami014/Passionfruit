@@ -69,16 +69,16 @@ COMMANDS = {
     "repeat": (None,
         "srepeat <cmd> [arg]...  Repeat a command until Ctrl+C",
         repeatargf),
-    "date": ((lambda a: forcenoargs(a) and time.strftime("%a %b %d %H:%M:%S %Y")),
+    "date": ((lambda a: forcenoargs(a) or time.strftime("%a %b %d %H:%M:%S %Y")),
         "-sdate  Show the current date and time",
         False),
-    "clear": ((lambda a: forcenoargs(a) and print("\x1b[2J\x1b[H", end="")),
+    "clear": ((lambda a: forcenoargs(a) or print("\x1b[2J\x1b[H", end="")),
         "-sclear  Clear the display",
         False),
     "exit": (None, "sexit  Exit the terminal", False),
 
     # Navigation
-    "pwd": ((lambda a: forcenoargs(a) and "  "+dir.PTH),
+    "pwd": ((lambda a: forcenoargs(a) or "  "+dir.PTH),
         "-npwd  Shows the path to the current directory",
         False),
     "ls": (dir.ls,
@@ -92,7 +92,7 @@ COMMANDS = {
     "edit": (dir.edit, "nedit <path>  Edit the contents of a file", dir.getpths),
 
     # Fun!
-    "whoami": ((lambda a: forcenoargs(a) and "Whoever you want to be"),
+    "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be"),
         "-!whoami  Show who you are logged in as",
         False),
     "vague": (vague,
