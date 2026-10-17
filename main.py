@@ -38,8 +38,14 @@ while True:
                                 desc = "Too many arguments!"
                                 fail = True
                         elif argopts is not None:
-                            curarg = "" if len(args) == 0 or s[-1] == ' ' else args[-1]
-                            suggest = (argopts(len(args), curarg) or '')[len(curarg):]
+                            xtra = len(args) == 0 or s[-1] == ' '
+                            curarg = "" if xtra else args[-1]
+                            out = argopts(len(args)+int(xtra)-1, curarg)
+                            if out and out[0] == '\3':
+                                desc = out
+                                fail = True
+                            else:
+                                suggest = (out or '')[len(curarg):]
                 else:
                     for c in sorted(COMMANDS.keys()):
                         if c.startswith(cmd):
@@ -103,20 +109,37 @@ while True:
 
 
     buf = buf.strip()
-    if buf == "exit":
-        break
     if not buf:
         continue
-    history.append(buf)
     cmd, *args = parse_cmd(buf)
-    if cmd in COMMANDS:
-        out = COMMANDS[cmd][0](args)
-        if out:
-            print(out)
-    else:
-        print("  Command not found:\033[1m",cmd, end="\033[0m\n")
-        closest = difflib.get_close_matches(cmd, COMMANDS.keys(), n=1, cutoff=0.6)
-        if closest:
-            print("  Did you mean:\033[1m", closest[0], end="\033[0m\n")
-        else:
-            print("  Run 'help' for a list of all posible commands")
+    if cmd == "exit":
+        break
+    history.append(buf)
+
+    try:
+        repeated = False
+        if cmd == "repeat":
+            if len(args) == 0:
+                print("\033[91mNo command provided!\033[0m")
+            elif args[0] not in COMMANDS:
+                cmd = args[0] # To make it error below with that as the command
+            else:
+                fn = COMMANDS[args[0]][0]
+                args = args[1:]
+                while True:
+                    if out := fn(args):
+                        print(out)
+
+        if not repeated:
+            if cmd in COMMANDS:
+                if out := COMMANDS[cmd][0](args):
+                    print(out)
+            else:
+                print("  Command not found:\033[1m",cmd, end="\033[0m\n")
+                closest = difflib.get_close_matches(cmd, COMMANDS.keys(), n=1, cutoff=0.6)
+                if closest:
+                    print("  Did you mean:\033[1m", closest[0], end="\033[0m\n")
+                else:
+                    print("  Run 'help' for a list of all posible commands")
+    except (KeyboardInterrupt, EOFError):
+        pass

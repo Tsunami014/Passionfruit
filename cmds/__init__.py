@@ -46,6 +46,12 @@ def helpargf(_, last):
         if c.startswith(last):
             return c
 
+def repeatargf(idx, last):
+    if idx == 0:
+        for c in sorted(COMMANDS.keys()):
+            if c.startswith(last):
+                return c
+
 def forcenoargs(a):
     if len(a) != 0:
         return "\033[91mToo many arguments!\033[0m"
@@ -62,7 +68,7 @@ COMMANDS = {
         None),
     "repeat": (None,
         "srepeat <cmd> [arg]...  Repeat a command until Ctrl+C",
-        None),
+        repeatargf),
     "date": ((lambda a: forcenoargs(a) and time.strftime("%a %b %d %H:%M:%S %Y")),
         "-sdate  Show the current date and time",
         False),
