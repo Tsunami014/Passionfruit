@@ -20,24 +20,39 @@ while True:
     h = len(history)
     wp = WrapPrinter()
     while True:
-        suggest = None
-        if s := buf.strip():
-            cmd = parse_cmd(s)[0]
-            desc = COMMANDS[cmd][1].lstrip('-')[1:] if cmd in COMMANDS else None
+        suggest = ''
+        fail = False
+        if s := buf.lstrip():
+            cmd, *args = parse_cmd(s)
+            if cmd in COMMANDS:
+                desc = COMMANDS[cmd][1].lstrip('-')[1:]
+            else:
+                desc = "Unknown command!"
+                fail = True
             if pos == len(buf):
-                for c in sorted(COMMANDS.keys()):
-                    if c.startswith(cmd):
-                        suggest = c
-                        break
+                if s[-1] == ' ' or len(args) > 0:
+                    if not fail:
+                        argopts = COMMANDS[cmd][2]
+                        if argopts is False:
+                            if len(args) != 0:
+                                desc = "Too many arguments!"
+                                fail = True
+                        elif argopts is not None:
+                            curarg = "" if len(args) == 0 or s[-1] == ' ' else args[-1]
+                            suggest = (argopts(len(args), curarg) or '')[len(curarg):]
+                else:
+                    for c in sorted(COMMANDS.keys()):
+                        if c.startswith(cmd):
+                            suggest = c[len(cmd):]
+                            break
         else:
-            desc = ""
-        sugtxt = suggest[len(s):] if suggest else ''
-        col = f"\033[{91 if desc is None else (95 if desc else 37)}m"
+            desc = None
+        col = f"\033[{91 if fail else (95 if desc is not None else 37)}m"
         command = (
             f"\033[92m{dir.PTH}\033[0m {col}$\033[0m "
-            f"{buf[:pos]}\5{buf[pos:]}\033[37m{sugtxt}\033[0m"
+            f"{buf[:pos]}\5{buf[pos:]}\033[37m{suggest}\033[0m"
         )
-        suff = f"\n{' '*(3+len(dir.PTH))}{col}└─ {desc if desc is not None else "unknown command"}" if desc != "" else "\n"
+        suff = f"\n{' '*(3+len(dir.PTH))}{col}└─ "+desc if desc is not None else "\n"
         wp(command+suff, end="")
         k = read_key()
         if k in ("\r", "\n"):
@@ -53,7 +68,7 @@ while True:
             break
         elif k == "\t":
             if suggest:
-                buf = suggest
+                buf += suggest
                 pos = len(buf)
         elif k == "bs" and pos:
             buf, pos = buf[:pos - 1] + buf[pos:], pos - 1

@@ -41,44 +41,67 @@ def help(a):
         ) for cidx, c in enumerate(zip_longest(*cols, fillvalue=""))
     )
 
+def helpargf(_, last):
+    for c in sorted(COMMANDS.keys()):
+        if c.startswith(last):
+            return c
+
 def forcenoargs(a):
     if len(a) != 0:
         return "\033[91mToo many arguments!\033[0m"
     return None
 
+# Commands are (function, description, arg func|None (any args allowed)|False (no args allowed))
 COMMANDS = {
     # System
-    "help": (help, "shelp [cmd]...  Show help for all/specified commands"),
+    "help": (help,
+        "shelp [cmd]...  Show help for all/specified commands",
+        helpargf),
     "echo": ((lambda a: ' '.join(a)),
-        "-secho [text]...  Prints text"),
-    "repeat": (None, "srepeat <cmd> [arg]...  Repeat a command until Ctrl+C"),
+        "-secho [text]...  Prints text",
+        None),
+    "repeat": (None,
+        "srepeat <cmd> [arg]...  Repeat a command until Ctrl+C",
+        None),
     "date": ((lambda a: forcenoargs(a) and time.strftime("%a %b %d %H:%M:%S %Y")),
-        "-sdate  Show the current date and time"),
+        "-sdate  Show the current date and time",
+        False),
     "clear": ((lambda a: forcenoargs(a) and print("\x1b[2J\x1b[H", end="")),
-        "-sclear  Clear the display"),
-    "exit": (None, "sexit  Exit the terminal"),
+        "-sclear  Clear the display",
+        False),
+    "exit": (None, "sexit  Exit the terminal", False),
 
     # Navigation
     "pwd": ((lambda a: forcenoargs(a) and "  "+dir.PTH),
-        "-npwd  Shows the path to the current directory"),
-    "ls": (dir.ls, "nls [path]...  List the contents of the current directory"),
+        "-npwd  Shows the path to the current directory",
+        False),
+    "ls": (dir.ls,
+        "nls [path]...  List the contents of the current directory",
+        dir.getpths),
     "cd": ((lambda _: "Nowhere to go!"),
-        "-ncd <dir>  Change the current directory"),
-    "rm": (dir.rm, "nrm <path>...  Remove a file"),
-    "cat": (dir.cat, "ncat <path>  Print the contents of a file"),
-    "edit": (dir.edit, "nedit <path>  Edit the contents of a file"),
+        "-ncd <dir>  Change the current directory",
+        dir.getpths),
+    "rm": (dir.rm, "nrm <path>...  Remove a file", dir.getpths),
+    "cat": (dir.cat, "ncat <path>  Print the contents of a file", dir.getpths),
+    "edit": (dir.edit, "nedit <path>  Edit the contents of a file", dir.getpths),
 
     # Fun!
     "whoami": ((lambda a: forcenoargs(a) and "Whoever you want to be"),
-        "-!whoami  Show who you are logged in as"),
+        "-!whoami  Show who you are logged in as",
+        False),
     "vague": (vague,
-        "!vague  Come up with concrete amounts of vague quantities"),
+        "!vague  Come up with concrete amounts of vague quantities",
+        False),
     "colassoc": (colAssoc,
-        "!colassoc  Come up with colours for words"),
+        "!colassoc  Come up with colours for words",
+        False),
     "assocs": (assocs,
-        "!assocs  Write down the first thing that comes to your mind"),
+        "!assocs  Write down the first thing that comes to your mind",
+        False),
     "react": (react,
-        "!react  Agree/disagree to statements as fast as you can"),
+        "!react  Agree/disagree to statements as fast as you can",
+        False),
     "choose": (choose.main,
-        "!choose [option]...  Pick from options via 1v1 matches (opens editor if no options given)"),
+        "!choose [option]...  Pick from options via 1v1 matches (opens editor if no options given)",
+        None),
 }

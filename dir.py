@@ -1,5 +1,5 @@
 import os
-PTH = '/'
+PTH = '/' # When I implement this, a lot of things will break :P
 
 root = os.path.abspath(os.path.join(os.getcwd(), "config"))
 if not os.path.exists(root):
@@ -8,7 +8,10 @@ if not os.path.exists(root):
 def parse_pth(pth):
     if pth.startswith('/'):
         pth = '.'+pth
-    return os.path.abspath(os.path.join(root, pth))
+    full = os.path.abspath(os.path.join(root, pth))
+    if os.path.commonpath([root, full]) != root:
+        return None
+    return full
 
 def ensure_exists(pth):
     fpth = parse_pth(pth)
@@ -19,12 +22,35 @@ def ensure_exists(pth):
         with open(fpth, "a"):
             pass
 
+def getpths(_, cur):
+    cur = cur or ''
+    head, sep, prefix = cur.rpartition('/')
+    dir = head + sep
+
+    d = parse_pth(dir or './')
+    if d is None or not os.path.isdir(d):
+        return None
+
+    names = sorted(os.listdir(d))
+    if prefix.startswith('.'):
+        names = ['./'] + ([] if d == root else ['../']) + names
+    else: # Hide dotfiles unless prefix starts with '.'
+        names = [n for n in names if not n.startswith('.')]
+
+    for name in names:
+        if name.startswith(prefix):
+            if not name.endswith('/') and os.path.isdir(os.path.join(d, name)):
+                name += '/'
+            return dir + name
+    return None
+
+
 def ls(a):
     if not a:
         a = ('/',)
     for pth in a:
         fpth = parse_pth(pth)
-        if not fpth.startswith(root):
+        if fpth is None:
             print("\033[91mPath outside root:\033[0m", pth)
         elif not os.path.exists(fpth):
             print("\033[91mPath does not exist:\033[0m", pth)
@@ -42,7 +68,7 @@ def rm(a):
         return
     for pth in a:
         fpth = parse_pth(pth)
-        if not fpth.startswith(root):
+        if fpth is None:
             print("\033[91mPath outside root:\033[0m", pth)
         elif not os.path.exists(fpth):
             print("\033[91mPath does not exist:\033[0m", pth)
@@ -60,7 +86,7 @@ def cat(a):
         return
     pth = a[0]
     fpth = parse_pth(pth)
-    if not fpth.startswith(root):
+    if fpth is None:
         print("\033[91mPath outside root:\033[0m", pth)
     elif not os.path.exists(fpth):
         print("\033[91mPath does not exist:\033[0m", pth)
@@ -79,7 +105,7 @@ def edit(a):
         return
     pth = a[0]
     fpth = parse_pth(pth)
-    if not fpth.startswith(root):
+    if fpth is None:
         print("\033[91mPath outside root:\033[0m", pth)
     elif not os.path.exists(fpth):
         print("\033[91mPath does not exist:\033[0m", pth)
