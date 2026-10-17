@@ -5,6 +5,7 @@ import dir
 from . import choose
 from .misc import vague, assocs, react
 from .colours import colAssoc
+from .edit import edit_file
 
 def sortk(a):
     return (len(a), a)
@@ -89,7 +90,7 @@ COMMANDS = {
         dir.getpths),
     "rm": (dir.rm, "nrm <path>...  Remove a file", dir.getpths),
     "cat": (dir.cat, "ncat <path>  Print the contents of a file", dir.getpths),
-    "edit": (dir.edit, "nedit <path>  Edit the contents of a file", dir.getpths),
+    "edit": (edit_file, "nedit <path>  Edit the contents of a file", dir.getpths),
 
     # Fun!
     "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be"),

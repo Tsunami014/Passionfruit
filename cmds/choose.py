@@ -2,6 +2,8 @@ import math
 import random
 import numpy as np
 from read import WrapPrinter, wait
+
+from .edit import edit_file
 import dir
 
 def sigmoid(x):
@@ -156,7 +158,7 @@ CHOICES_FILE = '/choices.txt'
 def main(items):
     if not items:
         dir.ensure_exists(CHOICES_FILE)
-        dir.edit((CHOICES_FILE,))
+        edit_file((CHOICES_FILE,))
         choices = dir.cat((CHOICES_FILE,))
         if choices is None:
             return
