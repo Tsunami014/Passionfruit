@@ -126,8 +126,14 @@ while True:
             else:
                 fn = COMMANDS[args[0]][0]
                 args = args[1:]
+                if out := fn(args):
+                    print(out)
+                if fn.__code__.co_argcount > 1:
+                    nfn = lambda a: fn(a, False)
+                else:
+                    nfn = fn
                 while True:
-                    if out := fn(args):
+                    if out := nfn(args):
                         print(out)
 
         if not repeated:

@@ -208,23 +208,22 @@ def main(items):
                 #     break
                 else:
                     print("Invalid input\033[1A\r\033[2K", end='')
-    except KeyboardInterrupt:
-        pass
+    finally:
+        print("\033[2K\nResults:\033[K")
+        scores = final_scores(theta)
 
-    print("\033[2K\nResults:\033[K")
-    scores = final_scores(theta)
-
-    print('╔═'+'═'*5+'═╦═'+'═'*mxitln+'═╗')
-    print(f"║ Score ║ {"Item".ljust(mxitln)} ║")
-    print('╠═'+'═'*5+'═╬═'+'═'*mxitln+'═╣')
-    for item, score in sorted(zip(items, scores), key=lambda t: -t[1]):
-        print(f"║ {score:5.1f} ║ {item.ljust(mxitln)} ║")
-    print('╚═'+'═'*5+'═╩═'+'═'*mxitln+'═╝')
+        mxitln = max(mxitln, 4) # Include "Item" title
+        print('╔═'+'═'*5+'═╦═'+'═'*mxitln+'═╗')
+        print(f"║ Score ║ {"Item".ljust(mxitln)} ║")
+        print('╠═'+'═'*5+'═╬═'+'═'*mxitln+'═╣')
+        for item, score in sorted(zip(items, scores), key=lambda t: -t[1]):
+            print(f"║ {score:5.1f} ║ {item.ljust(mxitln)} ║")
+        print('╚═'+'═'*5+'═╩═'+'═'*mxitln+'═╝')
 
 
-    print("\nTier list:")
-    for t, members in enumerate(make_tiers(theta, Sigma)):
-        print(f"  {TIER_LABELS[t] if t < len(TIER_LABELS) else str(t + 1)}")
-        last = len(members)-1
-        for i, k in enumerate(sorted(members, key=lambda k: -theta[k])):
-            print(f"  {'└' if i == last else '├'}─ {items[k]} ({round(scores[k], 1)})")
+        print("\nTier list:")
+        for t, members in enumerate(make_tiers(theta, Sigma)):
+            print(f"  {TIER_LABELS[t] if t < len(TIER_LABELS) else str(t + 1)}")
+            last = len(members)-1
+            for i, k in enumerate(sorted(members, key=lambda k: -theta[k])):
+                print(f"  {'└' if i == last else '├'}─ {items[k]} ({round(scores[k], 1)})")
