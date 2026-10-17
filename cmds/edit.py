@@ -80,11 +80,13 @@ def edit_file(a, *, extra=""):
     fpth = parse_pth(pth)
     if fpth is None:
         print("\033[91mPath outside root:\033[0m", pth)
-    elif not os.path.exists(fpth):
-        print("\033[91mPath does not exist:\033[0m", pth)
     elif os.path.isdir(fpth):
         print("\033[91mPath is a directory:\033[0m", pth)
     else:
+        # Create file if does not exist
+        os.makedirs(os.path.dirname(fpth), exist_ok=True)
+        with open(fpth, "a"):
+            pass
         try:
             print(end='\033[?1049h\033[2J\033[H', flush=True)
             with open(fpth) as f:
