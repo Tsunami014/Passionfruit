@@ -102,9 +102,11 @@ class WrapPrinter:
         if (cursidx := self.oldtxt.rfind('\5')) != -1:
             lndiff, _ = self._getlndiff(self.oldtxt, cursidx, mxwid)
             lndiff = -1-lndiff
-        else:
+        elif len(self.oldtxt) > 0:
             col = (len(self.oldtxt)-self.oldtxt.rfind('\n')-1) % mxwid
             lndiff = int(col == 0)-1
+        else:
+            lndiff = -1
 
         for ln in self.oldtxt.replace('\5', '', 1).split('\n'):
             lndiff += max(math.ceil(len(ln)/mxwid), 1)
@@ -133,16 +135,17 @@ def newinp(prompt=""):
     buf = ""
     pos = 0
     while True:
-        wp(prompt+buf[:pos]+'\5'+buf[pos:], end="")
+        full = prompt+buf[:pos]+'\5'+buf[pos:]
+        wp(full, end="")
         k = read_key()
         if k in ("\r", "\n"):
-            print()
+            wp(full.replace('\5', '', 1))
             break
         elif k == "\x03": # Ctrl+C
-            print("^C")
+            wp(full.replace('\5', '^C', 1))
             raise KeyboardInterrupt
         elif k == "\x04": # Ctrl+D
-            print("^D")
+            wp(full.replace('\5', '^D', 1))
             raise EOFError
         elif k == "bs" and pos:
             buf, pos = buf[:pos - 1] + buf[pos:], pos - 1
