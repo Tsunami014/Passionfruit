@@ -1,7 +1,75 @@
 from dir import parse_pth
+from read import read_key, WrapPrinter
 import os
 
-def edit_file(a):
+
+PREF = "\033[90m~ \033[0m"
+def _editui(lines, pref):
+    wp = WrapPrinter()
+    line = 0
+    col = 0
+    pref = f"\033[37m{pref}\033[0m\n"+PREF
+    while True:
+        print(end='\033[2J\033[H')
+        wp(pref+PREF.join(
+            ln if idx != line else ln[:col]+'\5'+ln[col:]
+            for idx, ln in enumerate(lines)
+        ).rstrip('\n'))
+        k = read_key()
+        if k == "\x03": # Ctrl+C
+            return True
+        elif k == "\x04": # Ctrl+D
+            return False
+        elif k in ("\r", "\n"):
+            old = lines[line]
+            lines.insert(line+1, old[col:])
+            lines[line] = old[:col]+'\n'
+            line += 1
+            col = 0
+        elif k == "bs":
+            if col:
+                curln = lines[line]
+                lines[line], col = curln[:col - 1] + curln[col:], col - 1
+            elif line:
+                oldnew = lines[line-1].rstrip('\n')
+                col = len(oldnew)
+                lines[line-1] = oldnew+lines.pop(line)
+                line -= 1
+        elif k == "del":
+            curln = lines[line]
+            lines[line] = curln[:col] + curln[col + 1:]
+        elif k in ("cbs", "cleft"): # jump / delete back one word
+            i = col
+            curln = lines[line]
+            while i and curln[i - 1] == " ":
+                i -= 1
+            while i and curln[i - 1] != " ":
+                i -= 1
+            lines[line], col = (curln[:i] + curln[col:], i) if k == "cbs" else (curln, i)
+        elif k == "cright":
+            curln = lines[line]
+            ln = len(curln)-1
+            while col < ln and curln[col] == " ":
+                col += 1
+            while col < ln and curln[col] != " ":
+                col += 1
+        elif k == "up":
+            line = max(0, line - 1)
+        elif k == "down":
+            line = min(len(lines)-1, line + 1)
+        elif k == "left":
+            col = max(0, col - 1)
+        elif k == "right":
+            col = min(len(lines[line])-1, col + 1)
+        elif k == "\t":
+            curln = lines[line]
+            lines[line], col = curln[:col] + '    ' + curln[col:], col + 4
+        elif len(k) == 1 and k.isprintable():
+            curln = lines[line]
+            lines[line], col = curln[:col] + k + curln[col:], col + 1
+
+
+def edit_file(a, *, extra=""):
     if not a:
         print("\033[91mNo file provided!\033[0m")
         return
@@ -17,6 +85,12 @@ def edit_file(a):
     elif os.path.isdir(fpth):
         print("\033[91mPath is a directory:\033[0m", pth)
     else:
-        # TODO: This
-        import subprocess
-        subprocess.run(["nvim", fpth])
+        try:
+            print(end='\033[?1049h\033[2J\033[H', flush=True)
+            with open(fpth) as f:
+                lines = f.readlines() or ['\n']
+            if _editui(lines, "Ctrl+C to save and quit, Ctrl+D to quit without saving"+extra):
+                with open(pth, 'w+') as f:
+                    f.writelines(lines)
+        finally:
+            print(end='\033[?1049l', flush=True)
