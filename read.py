@@ -102,11 +102,11 @@ class WrapPrinter:
         if (cursidx := self.oldtxt.rfind('\5')) != -1:
             lndiff, _ = self._getlndiff(self.oldtxt, cursidx, mxwid)
             lndiff = -1-lndiff
-        elif len(self.oldtxt) > 0:
-            col = (len(self.oldtxt)-self.oldtxt.rfind('\n')-1) % mxwid
-            lndiff = int(col == 0)-1
         else:
-            lndiff = -1
+            if (lastln := len(self.oldtxt) - self.oldtxt.rfind('\n') - 1) > 0:
+                lndiff = int(lastln % mxwid == 0)-1
+            else:
+                lndiff = -1
 
         for ln in self.oldtxt.replace('\5', '', 1).split('\n'):
             lndiff += max(math.ceil(len(ln)/mxwid), 1)
@@ -123,8 +123,10 @@ class WrapPrinter:
             right = '' if col <= 0 else f'\033[{col}C'
             print(pref+ntxt.replace('\5', '', 1)+'\r'+up+right, end="", flush=True)
         else:
-            col = (len(vis)-vis.rfind('\n')-1) % mxwid
-            wrap = ' \r' if col == 0 else ''
+            if (lastln := len(vis) - vis.rfind('\n') - 1) > 0:
+                wrap = ' \r' if lastln % mxwid == 0 else ''
+            else:
+                wrap = ''
             print(pref+ntxt+wrap, end="", flush=True)
 
         self.oldtxt = vis

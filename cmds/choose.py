@@ -1,6 +1,7 @@
 import math
 import random
 import numpy as np
+from read import WrapPrinter, wait
 import dir
 
 def sigmoid(x):
@@ -166,12 +167,12 @@ def main(items):
         print("\033[91mNo items!\033[0m")
         return
 
+    wp = WrapPrinter()
     mxitln = max(len(i) for i in items)
     mxmidln = 2
     colln = mxitln * 2 + 2 + mxmidln
-    print('┌─'+'─'*colln+'─┐')
-    end = '└─'+'─'*colln+'─┘'
-    print(end)
+    boxed = ['┌─'+'─'*colln+'─┐']
+    end = '\n└─'+'─'*colln+'─┘'
 
     n = len(items)
     comparisons = []
@@ -188,16 +189,15 @@ def main(items):
                 break
             i, j = _next[0], _next[1]
             a, b = items[i], items[j]
-            print(f"{a} vs {b}\033[K")
-            print(">>  >   <  <<    quit\033[K\n1   2   3   4     q\033[K")
+            wp('\n'.join(boxed)+f'{end}\n{a} vs {b}\n>>  >   <  <<    quit\n1   2   3   4     q')
             while True:
-                choice = input("= \033[K").strip().lower()
+                choice = wait("", wait_for="1234q")
                 if len(choice) == 1 and choice in '1234':
                     c = int(choice)-1
                     comparisons.append((i, j, Y[c]))
                     asked.add((min(i, j), max(i, j)))
                     txt = ['>>', '>', '<', '<<'][c]
-                    print(f"\033[5A│ {a.ljust(mxitln)} {txt.center(mxmidln)} {b.rjust(mxitln)} │\033[K\n{end}\033[K")
+                    boxed.append(f"│ {a.ljust(mxitln)} {txt.center(mxmidln)} {b.rjust(mxitln)} │")
                     break
                 elif choice == "q":
                     raise KeyboardInterrupt()
@@ -206,10 +206,9 @@ def main(items):
                 #         i, j, _ = comparisons.pop()
                 #         asked.discard((min(i, j), max(i, j)))
                 #     break
-                else:
-                    print("Invalid input\033[1A\r\033[2K", end='')
     finally:
-        print("\033[2K\nResults:\033[K")
+        wp('\n'.join(boxed)+end)
+        print("\nResults:\033[K")
         scores = final_scores(theta)
 
         mxitln = max(mxitln, 4) # Include "Item" title
