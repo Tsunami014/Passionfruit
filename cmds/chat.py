@@ -41,6 +41,7 @@ def main(personas, init=True):
             fail = False
             inf = ""
             cmd, _, args = inp[1:].partition(' ')
+            args = args.strip()
             match cmd.lower():
                 case "help":
                     inf = """
@@ -49,6 +50,7 @@ def main(personas, init=True):
 \\list  Lists all personas
 \\hint  Some info that may help make using this easier
 \\topic  Get suggested a random topic of conversation
+\\col [col]  Switch colour scheme for future messages (randomly, or to provided number)
 """[1:-1]
                 case "what":
                     inf = """
@@ -57,6 +59,15 @@ They could be anything, e.g. "happiness", "anger", or even just random names you
 The aim is to role-play as the persona of yourself.
 You can use this just for fun, or use some of the questions in \\topic (or think of your own questions) to have a chat with yourself about yourself!
 """[1:-1]
+                case "col":
+                    if args:
+                        try:
+                            offs = int(args)
+                        except ValueError:
+                            fail = True
+                            inf = f"Input not a number: '{args}'!"
+                    else:
+                        offs = randint(0, len(COLS)-1)
                 case "list":
                     inf = "\n".join(personas)
                 case "switch":
