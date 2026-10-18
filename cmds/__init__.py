@@ -8,7 +8,7 @@ from .colours import colAssoc
 from .edit import edit_file
 
 def sortk(a):
-    return (len(a), a)
+    return (-len(a), a)
 
 CATEGORIES = {
     's': ('System', 33),
@@ -26,7 +26,7 @@ def help(a):
         return
     cats = {k: [] for k in CATEGORIES}
     hide = set()
-    for c, (_, desc) in COMMANDS.items():
+    for c, (_, desc, _) in COMMANDS.items():
         chr = desc[0]
         if chr == '-':
             chr = desc[1]
@@ -93,7 +93,7 @@ COMMANDS = {
     "edit": (edit_file, "nedit <path>  Edit the contents of a file", dir.getpths),
 
     # Fun!
-    "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be"),
+    "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be! <3"),
         "-!whoami  Show who you are logged in as",
         False),
     "vague": (vague,
@@ -109,7 +109,7 @@ COMMANDS = {
         "!react  Agree/disagree to statements as fast as you can",
         False),
     "chat": (chat.main,
-        "!chat [persona]...  Chat with different personas (opens editor if no personas given)",
+        "!chat [persona]...  Chat with different personas of yourself (opens editor if no personas given)",
         None),
     "choose": (choose.main,
         "!choose [option]...  Pick from options via 1v1 matches (opens editor if no options given)",

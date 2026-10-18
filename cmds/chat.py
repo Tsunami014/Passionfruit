@@ -1,6 +1,6 @@
 from .edit import edit_file
 from read import newinp, WrapPrinter
-from random import randint
+from random import choice, randint
 import dir
 import re
 
@@ -8,6 +8,9 @@ NAME_RE = re.compile(r'^\s*(.+?)\s*(?:\(([^()]+)\)\s*)?$')
 PERSONAS_FILE = '/personas.txt'
 COLS = [166, 209, 220, 112, 37, 69, 63, 98, 169]
 def main(personas, init=True):
+    with open('data/convtopics.txt') as f:
+        TOPICS = [o for i in f.readlines() if (o := i[:-1])]
+
     if not personas:
         edit_file((PERSONAS_FILE,), extra="\nPut all personas on new lines")
         items = dir.cat((PERSONAS_FILE,))
@@ -41,19 +44,30 @@ def main(personas, init=True):
             match cmd.lower():
                 case "help":
                     inf = """
+\\what  If you are confused about what this is
 \\switch <name>  Switches persona to <name>
 \\list  Lists all personas
-\\hint  Get a hint to make your life easier
+\\hint  Some info that may help make using this easier
+\\topic  Get suggested a random topic of conversation
+"""[1:-1]
+                case "what":
+                    inf = """
+This is for you to chat with different 'personas' of yourself!
+They could be anything, e.g. "happiness", "anger", or even just random names you like.
+The aim is to role-play as the persona of yourself.
+You can use this just for fun, or use some of the questions in \\topic (or think of your own questions) to have a chat with yourself about yourself!
 """[1:-1]
                 case "list":
                     inf = "\n".join(personas)
                 case "switch":
-                    idx = name_lookup.get(args, None)
+                    idx = name_lookup.get(args.lower(), None)
                     if idx is None:
                         fail = True
                         inf = f"Unknown persona '{args}'! Try running \\list"
                     else:
                         per = idx
+                case "topic":
+                    inf = choice(TOPICS)
                 case "hint":
                     inf = """
 You can end a name with (nickname) and use the nickname when switching to switch faster!
