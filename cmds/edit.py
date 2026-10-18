@@ -4,26 +4,29 @@ import os
 
 
 PREF = "\033[90m~ \033[0m"
-def _editui(lines, pref):
+def _editui(fc, pref):
+    if fc.endswith('\n'):
+        fc = fc[:-1]
+    lines = fc.split('\n')
     wp = WrapPrinter()
     line = 0
     col = 0
     pref = f"\033[37m{pref}\033[0m\n"+PREF
     while True:
         print(end='\033[2J\033[H')
-        wp(pref+PREF.join(
+        wp(pref+('\n'+PREF).join(
             ln if idx != line else ln[:col]+'\5'+ln[col:]
             for idx, ln in enumerate(lines)
-        ).rstrip('\n'))
+        ))
         k = read_key()
         if k == "\x03": # Ctrl+C
-            return True
+            return lines
         elif k == "\x04": # Ctrl+D
-            return False
+            return None
         elif k in ("\r", "\n"):
             old = lines[line]
             lines.insert(line+1, old[col:])
-            lines[line] = old[:col]+'\n'
+            lines[line] = old[:col]
             line += 1
             col = 0
         elif k == "bs":
@@ -31,13 +34,17 @@ def _editui(lines, pref):
                 curln = lines[line]
                 lines[line], col = curln[:col - 1] + curln[col:], col - 1
             elif line:
-                oldnew = lines[line-1].rstrip('\n')
+                oldnew = lines[line-1]
                 col = len(oldnew)
                 lines[line-1] = oldnew+lines.pop(line)
                 line -= 1
         elif k == "del":
             curln = lines[line]
-            lines[line] = curln[:col] + curln[col + 1:]
+            if col == len(curln):
+                if line + 1 < len(lines):
+                    lines[line] = curln + lines.pop(line+1)
+            else:
+                lines[line] = curln[:col] + curln[col + 1:]
         elif k in ("cbs", "cleft"): # jump / delete back one word
             i = col
             curln = lines[line]
@@ -48,19 +55,21 @@ def _editui(lines, pref):
             lines[line], col = (curln[:i] + curln[col:], i) if k == "cbs" else (curln, i)
         elif k == "cright":
             curln = lines[line]
-            ln = len(curln)-1
+            ln = len(curln)
             while col < ln and curln[col] == " ":
                 col += 1
             while col < ln and curln[col] != " ":
                 col += 1
         elif k == "up":
             line = max(0, line - 1)
+            col = min(len(lines[line]), col)
         elif k == "down":
             line = min(len(lines)-1, line + 1)
+            col = min(len(lines[line]), col)
         elif k == "left":
             col = max(0, col - 1)
         elif k == "right":
-            col = min(len(lines[line])-1, col + 1)
+            col = min(len(lines[line]), col + 1)
         elif k == "\t":
             curln = lines[line]
             lines[line], col = curln[:col] + '    ' + curln[col:], col + 4
@@ -90,9 +99,10 @@ def edit_file(a, *, extra=""):
         try:
             print(end='\033[?1049h\033[2J\033[H', flush=True)
             with open(fpth) as f:
-                lines = f.readlines() or ['\n']
-            if _editui(lines, "Ctrl+C to save and quit, Ctrl+D to quit without saving"+extra):
+                fc = f.read()
+            if (outlns := _editui(fc, "Ctrl+C to save and quit, Ctrl+D to quit without saving"+extra)) is not None:
                 with open(fpth, 'w+') as f:
-                    f.writelines(lines)
+                    for ln in outlns:
+                        f.write(ln+'\n')
         finally:
             print(end='\033[?1049l', flush=True)
