@@ -43,23 +43,23 @@ def main(personas, init=True):
             cmd, _, args = inp[1:].partition(' ')
             args = args.strip()
             match cmd.lower():
-                case "help":
+                case "help"|"h":
                     inf = """
-\\what  If you are confused about what this is
-\\switch <name>  Switches persona to <name>
-\\list  Lists all personas
-\\hint  Some info that may help make using this easier
-\\topic  Get suggested a random topic of conversation
-\\col [col]  Switch colour scheme for future messages (randomly, or to provided number)
+\\what  If you are confused about what this is (\\w)
+\\switch <name>  Switches persona to <name> (\\s)
+\\list  Lists all personas (\\l)
+\\hint  Some info that may help make using this easier (\\h)
+\\topic  Get suggested a random topic of conversation (\\t)
+\\col [col]  Switch colour scheme for future messages (randomly, or to provided number) (\\c)
 """[1:-1]
-                case "what":
+                case "what"|"w":
                     inf = """
 This is for you to chat with different 'personas' of yourself!
 They could be anything, e.g. "happiness", "anger", or even just random names you like.
 The aim is to role-play as the persona of yourself.
 You can use this just for fun, or use some of the questions in \\topic (or think of your own questions) to have a chat with yourself about yourself!
 """[1:-1]
-                case "col":
+                case "col"|"c":
                     if args:
                         try:
                             offs = int(args)
@@ -68,18 +68,18 @@ You can use this just for fun, or use some of the questions in \\topic (or think
                             inf = f"Input not a number: '{args}'!"
                     else:
                         offs = randint(0, len(COLS)-1)
-                case "list":
+                case "list"|"l":
                     inf = "\n".join(personas)
-                case "switch":
+                case "switch"|"s":
                     idx = name_lookup.get(args.lower(), None)
                     if idx is None:
                         fail = True
                         inf = f"Unknown persona '{args}'! Try running \\list"
                     else:
                         per = idx
-                case "topic":
+                case "topic"|"t":
                     inf = choice(TOPICS)
-                case "hint":
+                case "hint"|"h":
                     inf = """
 You can end a name with (nickname) and use the nickname when switching to switch faster!
 This can even be one letter long to make it very fast!
