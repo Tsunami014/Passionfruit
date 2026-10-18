@@ -2,7 +2,7 @@ import time
 from itertools import zip_longest
 
 import dir
-from . import choose
+from . import choose, chat
 from .misc import vague, assocs, react
 from .colours import colAssoc
 from .edit import edit_file
@@ -108,6 +108,9 @@ COMMANDS = {
     "react": (react,
         "!react  Agree/disagree to statements as fast as you can",
         False),
+    "chat": (chat.main,
+        "!chat [persona]...  Chat with different personas (opens editor if no personas given)",
+        None),
     "choose": (choose.main,
         "!choose [option]...  Pick from options via 1v1 matches (opens editor if no options given)",
         None),

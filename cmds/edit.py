@@ -92,7 +92,7 @@ def edit_file(a, *, extra=""):
             with open(fpth) as f:
                 lines = f.readlines() or ['\n']
             if _editui(lines, "Ctrl+C to save and quit, Ctrl+D to quit without saving"+extra):
-                with open(pth, 'w+') as f:
+                with open(fpth, 'w+') as f:
                     f.writelines(lines)
         finally:
             print(end='\033[?1049l', flush=True)

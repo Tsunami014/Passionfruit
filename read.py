@@ -132,8 +132,9 @@ class WrapPrinter:
         self.oldtxt = vis
 
 
-def newinp(prompt=""):
-    wp = WrapPrinter()
+def newinp(prompt="", wp=None):
+    if wp is None:
+        wp = WrapPrinter()
     buf = ""
     pos = 0
     while True:
