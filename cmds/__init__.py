@@ -2,7 +2,7 @@ import time
 from itertools import zip_longest
 
 import dir
-from . import choose, chat
+from . import choose, chat, groups
 from .misc import vague, assocs, react
 from .colours import colAssoc
 from .edit import edit_file
@@ -58,6 +58,16 @@ def forcenoargs(a):
         return "\033[91mToo many arguments!\033[0m"
     return None
 
+def forceonearg(fn):
+    def fn2(idx, last):
+        if idx == 1 and last == '':
+            return
+        if idx != 0:
+            return "\3Too many arguments!"
+        return fn(idx, last)
+    return fn2
+
+
 # Commands are (function, description, arg func|None (any args allowed)|False (no args allowed))
 COMMANDS = {
     # System
@@ -87,10 +97,10 @@ COMMANDS = {
         dir.getpths),
     "cd": ((lambda _: "Nowhere to go!"),
         "-ncd <dir>  Change the current directory",
-        dir.getpths),
+        forceonearg(dir.getpths)),
     "rm": (dir.rm, "nrm <path>...  Remove a file", dir.getpths),
-    "cat": (dir.cat, "ncat <path>  Print the contents of a file", dir.getpths),
-    "edit": (edit_file, "nedit <path>  Edit the contents of a file", dir.getpths),
+    "cat": (dir.cat, "ncat <path>  Print the contents of a file", forceonearg(dir.getpths)),
+    "edit": (edit_file, "nedit <path>  Edit the contents of a file", forceonearg(dir.getpths)),
 
     # Fun!
     "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be! <3"),
@@ -113,5 +123,8 @@ COMMANDS = {
         None),
     "choose": (choose.main,
         "!choose [option]...  Pick from options via 1v1 matches (opens editor if no options given)",
+        None),
+    "groups": (groups.main,
+        "!groups [group]...  Place items in groups you make (opens editor if no groups given)",
         None),
 }
