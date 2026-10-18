@@ -132,11 +132,11 @@ class WrapPrinter:
         self.oldtxt = vis
 
 
-def newinp(prompt="", wp=None):
+def newinp(prompt="", wp=None, start="", *, tabforcexit=False):
     if wp is None:
         wp = WrapPrinter()
-    buf = ""
-    pos = 0
+    buf = start
+    pos = len(start)
     while True:
         full = prompt+buf[:pos]+'\5'+buf[pos:]
         wp(full, end="")
@@ -171,6 +171,9 @@ def newinp(prompt="", wp=None):
         elif k == "right":
             pos = min(len(buf), pos + 1)
         elif k == "\t":
+            if tabforcexit:
+                wp(end="")
+                return buf+'\t'
             buf, pos = buf[:pos] + '    ' + buf[pos:], pos + 4
         elif len(k) == 1 and k.isprintable():
             buf, pos = buf[:pos] + k + buf[pos:], pos + 1

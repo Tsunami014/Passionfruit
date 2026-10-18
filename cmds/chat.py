@@ -34,9 +34,15 @@ def main(personas, init=True):
     wp = WrapPrinter()
     pref = ""
     offs = randint(0, len(COLS)-1)
+    nxt = ""
     while True:
         prompt = f"\033[1;38;5;{COLS[(per+offs)%len(COLS)]}m{names[per]} > \033[0m"
-        inp = newinp(pref+prompt, wp)
+        inp = newinp(pref+prompt, wp, nxt, tabforcexit=True)
+        if inp.endswith('\t'):
+            nxt = inp[:-1]
+            inp = '\\s'
+        else:
+            nxt = ""
         if inp.startswith('\\'):
             fail = False
             inf = ""
@@ -46,7 +52,7 @@ def main(personas, init=True):
                 case "help"|"h":
                     inf = """
 \\what  If you are confused about what this is (\\w)
-\\switch <name>  Switches persona to <name> (\\s)
+\\switch [name]  Switches persona to [name] (\\s)
 \\list  Lists all personas (\\l)
 \\hint  Some info that may help make using this easier (\\h)
 \\topic  Get suggested a random topic of conversation (\\t)
@@ -71,18 +77,22 @@ You can use this just for fun, or use some of the questions in \\topic (or think
                 case "list"|"l":
                     inf = "\n".join(personas)
                 case "switch"|"s":
-                    idx = name_lookup.get(args.lower(), None)
-                    if idx is None:
-                        fail = True
-                        inf = f"Unknown persona '{args}'! Try running \\list"
+                    if args:
+                        idx = name_lookup.get(args.lower(), None)
+                        if idx is None:
+                            fail = True
+                            inf = f"Unknown persona '{args}'! Try running \\list"
+                        else:
+                            per = idx
                     else:
-                        per = idx
+                        per = (per+1) % len(personas)
                 case "topic"|"t":
                     inf = choice(TOPICS)
                 case "hint"|"h":
                     inf = """
 You can end a name with (nickname) and use the nickname when switching to switch faster!
 This can even be one letter long to make it very fast!
+Also, pressing tab will quick switch between personas!
 """[1:-1]
                 case _:
                     fail = True
