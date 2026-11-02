@@ -1,11 +1,17 @@
 import os
-import difflib
+import sys
 from cmds import COMMANDS
 from read import read_key, WrapPrinter
+import difflib
 import dir
 import re
 
-os.chdir(os.path.abspath(os.path.join(__file__, "..")))
+if getattr(sys, "frozen", False):
+    base = os.path.dirname(sys.executable)
+else:
+    base = os.path.dirname(os.path.abspath(__file__))
+os.chdir(base)
+
 os.system("")  # lets Windows terminals understand ANSI escape codes
 
 PARSE_CMD_RE = re.compile(r'"((?:\\\\|\\"|[^"])+)"|([^ ]+)')
