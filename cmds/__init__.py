@@ -44,6 +44,8 @@ def help(a):
     )
 
 def helpargf(_, last):
+    if not last:
+        return ""
     for c in sorted(COMMANDS.keys()):
         if c.startswith(last):
             return c
@@ -90,22 +92,22 @@ COMMANDS = {
     "exit": (None, "sexit  Exit the terminal", False),
 
     # Navigation
-    "pwd": ((lambda a: forcenoargs(a) or "  "+dir.PTH),
+    "pwd": ((lambda a: forcenoargs(a) or "  "+dir.nicePth()),
         "-npwd  Shows the path to the current directory",
         False),
     "ls": (dir.ls,
-        "nls [path]...  List the contents of the current directory",
+        "nls [path]...  List directory contents (without paths, uses the current directory)",
         dir.getpths),
-    "cd": ((lambda _: "Nowhere to go!"),
-        "-ncd <dir>  Change the current directory",
-        forceonearg(dir.getpths)),
+    "cd": (dir.cd,
+        "ncd <dir>  Change the current directory",
+       forceonearg(dir.getdirpths)),
 
     # Editing
     "rm": (dir.rm, "frm [-r] <path>...  Remove files (or directories with -r)", dir.getpths),
     "cat": (dir.cat, "-fcat <path>  Print the contents of a file", forceonearg(dir.getpths)),
     "edit": (edit_file, "fedit <path>  Edit the contents of a file", forceonearg(dir.getpths)),
     "touch": (dir.touch, "ftouch <path>...  Ensure files exist, creating them if not", dir.getpths),
-    "mkdir": (dir.mkdir, "fmkdir [-p] <path>...  Create directories, with -p creates parents as well", dir.getpths),
+    "mkdir": (dir.mkdir, "fmkdir [-p] <path>...  Create directories, with -p creates parents as well", dir.getdirpths),
 
     # Fun!
     "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be! <3"),

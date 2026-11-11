@@ -2,6 +2,10 @@ import os
 import shutil
 from collections import deque
 PTH = '/' # Must end with / and start with /
+def nicePth():
+    if PTH == '/':
+        return '/'
+    return PTH[:-1]
 
 root = os.path.abspath(os.path.join(os.getcwd(), "config"))
 if not os.path.exists(root):
@@ -32,8 +36,9 @@ def ensure_exists(pth):
         with open(fpth, "a"):
             pass
 
-def getpths(_, cur):
-    cur = cur or ''
+def getpths(_, cur, dirsonly=False):
+    if not cur or cur[-1] == '/':
+        return ""
     head, sep, prefix = cur.rpartition('/')
     dir = head + sep
 
@@ -49,15 +54,40 @@ def getpths(_, cur):
 
     for name in names:
         if name.startswith(prefix):
-            if not name.endswith('/') and os.path.isdir(os.path.join(d, name)):
+            isdir = os.path.isdir(os.path.join(d, name))
+            if not isdir and dirsonly:
+                continue
+            if not name.endswith('/') and isdir:
                 name += '/'
             return dir + name
     return None
+def getdirpths(_, cur):
+    return getpths(_, cur, True)
 
+
+def cd(a):
+    if not a:
+        a = ('/',)
+    if len(a) > 1:
+        print("\033[91mToo many paths provided!\033[0m")
+        return
+    pth = a[0]
+    fpth = parse_pth(pth)
+    if fpth is None:
+        print("\033[91mPath outside root:\033[0m", pth)
+    elif not os.path.exists(fpth):
+        print("\033[91mPath does not exist:\033[0m", pth)
+    elif not os.path.isdir(fpth):
+        print("\033[91mPath is not a directory:\033[0m", pth)
+    else:
+        global PTH
+        PTH = root_pth(fpth)
+        if not PTH.endswith('/'):
+            PTH += '/'
 
 def ls(a):
     if not a:
-        a = ('/',)
+        a = ('./',)
     for pth in a:
         fpth = parse_pth(pth)
         if fpth is None:
@@ -66,7 +96,6 @@ def ls(a):
             print("\033[91mPath does not exist:\033[0m", pth)
         elif os.path.isdir(fpth):
             fs = os.listdir(fpth)
-            print(f"{root_pth(fpth)}   total {len(fs)}", end='')
             if fs:
                 parsedfs = deque(
                     (f'\033[94m{f}/\033[0m', len(f)+1) if os.path.isdir(os.path.join(fpth, f)) else (f, len(f))
@@ -77,12 +106,17 @@ def ls(a):
                 while parsedfs:
                     t, ln = parsedfs.popleft()
                     pref = '  '
-                    if nxt is None or nxt+ln >= mxln:
+                    if nxt is None:
+                        pref = '   '
+                        nxt = 0
+                    if nxt+ln >= mxln:
                         pref = '\n   '
                         nxt = -1 # Adjust for newline
                     print(pref+t, end='')
                     nxt += len(pref)+ln
                 print()
+            else:
+                print("\033[90m(Nothing here!)\033[0m")
         else:
             print(root_pth(fpth))
 
@@ -101,12 +135,12 @@ def rm(a):
             print("\033[91mPath does not exist:\033[0m", pth)
         elif os.path.isdir(fpth):
             if dirs:
-                if root_pth(fpth) == '/':
-                    print("\033[91mCannot delete root!\033[0m")
+                if PTH.startswith(root_pth(fpth)):
+                    print("\033[91mCannot delete directory you are in!\033[0m")
                 else:
                     shutil.rmtree(fpth)
             else:
-                print("\033[91mPath is a directory:\033[0m", pth)
+                print("\033[91mPath is a directory:\033[0m", pth+"\n  \033[90m(Run with -r to delete directory contents)\033[0m")
         else:
             os.remove(fpth)
 
@@ -162,10 +196,10 @@ def mkdir(a):
             if parents:
                 os.makedirs(fpth, exist_ok=True)
             elif not os.path.exists(os.path.dirname(fpth)):
-                print("\033[91mParent does not exist to:\033[0m", pth, "\033[90m(Run with -p to create parent directories)\033[0m")
+                print("\033[91mParent does not exist to:\033[0m", pth+"\n  \033[90m(Run with -p to create parent directories)\033[0m")
             else:
                 os.mkdir(fpth)
         elif not os.path.isdir(fpth):
             print("\033[91mPath is not a directory:\033[0m", pth)
         elif not parents:
-            print("\033[91mPath already exists:\033[0m", pth, "\033[90m(Run with -p to ignore existing)\033[0m")
+            print("\033[91mPath already exists:\033[0m", pth+"\n  \033[90m(Run with -p to ignore existing)\033[0m")
