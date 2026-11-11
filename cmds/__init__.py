@@ -7,12 +7,13 @@ from .misc import vague, assocs, react
 from .colours import colAssoc
 from .edit import edit_file
 
-def sortk(a):
-    return (-len(a), a)
+def sortk(hide, a):
+    return (hide, len(a)*(-1 if hide else 1), a)
 
 CATEGORIES = {
     's': ('System', 33),
     'n': ('Navigation', 32),
+    'f': ('Editing', 34),
     '!': ('Fun', 35),
 }
 
@@ -32,7 +33,7 @@ def help(a):
             chr = desc[1]
             hide.add(c)
         cats[chr].append(c)
-    cols = [[CATEGORIES[k][0], *sorted(cmds, key=lambda x: (x in hide, *sortk(x)))] for k, cmds in cats.items()]
+    cols = [[CATEGORIES[k][0], *sorted(cmds, key=lambda x: sortk(x in hide, x))] for k, cmds in cats.items()]
     colours = [CATEGORIES[k][1] for k in cats.keys()]
     mxwids = [max(len(i) for i in c) for c in cols]
 
@@ -84,7 +85,7 @@ COMMANDS = {
         "-sdate  Show the current date and time",
         False),
     "clear": ((lambda a: forcenoargs(a) or print("\x1b[2J\x1b[H", end="")),
-        "-sclear  Clear the display",
+        "sclear  Clear the display",
         False),
     "exit": (None, "sexit  Exit the terminal", False),
 
@@ -98,9 +99,13 @@ COMMANDS = {
     "cd": ((lambda _: "Nowhere to go!"),
         "-ncd <dir>  Change the current directory",
         forceonearg(dir.getpths)),
-    "rm": (dir.rm, "nrm <path>...  Remove a file", dir.getpths),
-    "cat": (dir.cat, "ncat <path>  Print the contents of a file", forceonearg(dir.getpths)),
-    "edit": (edit_file, "nedit <path>  Edit the contents of a file", forceonearg(dir.getpths)),
+
+    # Editing
+    "rm": (dir.rm, "frm [-r] <path>...  Remove files (or directories with -r)", dir.getpths),
+    "cat": (dir.cat, "-fcat <path>  Print the contents of a file", forceonearg(dir.getpths)),
+    "edit": (edit_file, "fedit <path>  Edit the contents of a file", forceonearg(dir.getpths)),
+    "touch": (dir.touch, "ftouch <path>...  Ensure files exist, creating them if not", dir.getpths),
+    "mkdir": (dir.mkdir, "fmkdir [-p] <path>...  Create directories, with -p creates parents as well", dir.getpths),
 
     # Fun!
     "whoami": ((lambda a: forcenoargs(a) or "Whoever you want to be! <3"),
