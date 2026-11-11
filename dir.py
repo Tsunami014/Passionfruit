@@ -13,6 +13,9 @@ def parse_pth(pth):
         return None
     return full
 
+def root_pth(fpth):
+    return '/'+os.path.relpath(fpth, root)
+
 def ensure_exists(pth):
     fpth = parse_pth(pth)
     if os.path.isdir(fpth):

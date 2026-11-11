@@ -128,7 +128,6 @@ class WrapPrinter:
             else:
                 wrap = ''
             print(pref+ntxt+wrap, end="", flush=True)
-
         self.oldtxt = vis
 
 

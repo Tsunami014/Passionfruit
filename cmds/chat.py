@@ -12,7 +12,7 @@ def main(personas, init=True):
         TOPICS = [o for i in f.readlines() if (o := i[:-1])]
 
     if not personas:
-        edit_file((PERSONAS_FILE,), extra="\nPut all personas on new lines")
+        edit_file((PERSONAS_FILE,), extra="Put all personas on new lines")
         items = dir.cat((PERSONAS_FILE,))
         if items is None:
             return

@@ -9,7 +9,7 @@ ITEMS_FILE = '/items.txt'
 ALL_LETTERS = '1234567890qwertyuiopasdfghjklzxcvbnm'
 def main(grps):
     if not grps:
-        edit_file((GROUPS_FILE,), extra="\nPut all groups on new lines")
+        edit_file((GROUPS_FILE,), extra="Put all groups on new lines")
         grpits = dir.cat((GROUPS_FILE,))
         if grpits is None:
             return
@@ -23,7 +23,7 @@ def main(grps):
         print("\033[91mNo groups!\033[0m")
         return
 
-    edit_file((ITEMS_FILE,), extra="\nPut all items/people/objects to categorise on new lines")
+    edit_file((ITEMS_FILE,), extra="Put all items/people/objects to categorise on new lines")
     its = dir.cat((ITEMS_FILE,))
     if its is None:
         return

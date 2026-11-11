@@ -157,7 +157,7 @@ def should_stop(n, num_asked, next_pair):
 CHOICES_FILE = '/choices.txt'
 def main(items):
     if not items:
-        edit_file((CHOICES_FILE,), extra="\nPut all options on new lines")
+        edit_file((CHOICES_FILE,), extra="Put all options on new lines")
         choices = dir.cat((CHOICES_FILE,))
         if choices is None:
             return
