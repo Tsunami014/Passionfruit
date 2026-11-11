@@ -1,5 +1,5 @@
 from read import WrapPrinter, wait
-from .edit import edit_file, edit_text
+from .edit import edit_file
 import dir
 
 from random import shuffle

@@ -1,5 +1,5 @@
 from dir import parse_pth
-from read import read_key, WrapPrinter
+from read import read_key, WrapPrinter, wait
 import os
 
 
@@ -13,18 +13,51 @@ def edit_text(fc, pref):
         wp = WrapPrinter()
         line = 0
         col = 0
-        pref = f"\033[37m{pref}\033[0m\n"+PREF
+        pref = f"\033[37m{pref}\033[0m\n"
         while True:
             print(end='\033[2J\033[H')
-            wp(pref+('\n'+PREF).join(
-                ln if idx != line else ln[:col]+'\5'+ln[col:]
+            wp(pref+'\n'.join(
+                PREF+ln if idx != line else PREF+ln[:col]+'\5'+ln[col:]
                 for idx, ln in enumerate(lines)
             ))
             k = read_key()
-            if k == "\x03": # Ctrl+C
-                return lines
-            elif k == "\x04": # Ctrl+D
-                return None
+            if k == "\x07": # Ctrl+G - Help
+                wp("""\033[1mHELP\033[0m
+
+Ctrl+S - Save and exit
+Ctrl+X - Exit without saving
+Ctrl+R - Reset contents to last saved
+Ctrl+C - Delete current line
+Ctrl+D - Clear everything
+
+Press Enter to close help""")
+                wait()
+            elif k == "\x13": # Ctrl+S - save & exit
+                wp("Save and exit? [Y/n] > \5\n"+'\n'.join(PREF+ln for ln in lines))
+                if wait(wait_for='yn\n\r') != 'n':
+                    return lines
+            if k == "\x18": # Ctrl+X - exit without saving
+                wp("Exit without saving? [y/N] > \5\n"+'\n'.join(PREF+ln for ln in lines))
+                if wait(wait_for='yn\n\r') == 'y':
+                    return None
+            elif k == "\x12": # Ctrl+R - Reset file to original
+                wp("Reset buffer? [y/N] > \5\n"+'\n'.join(PREF+ln for ln in lines))
+                if wait(wait_for='yn\n\r') == 'y':
+                    lines = fc.split('\n')
+                    line = 0
+                    col = 0
+            elif k == "\x03": # Ctrl+C - Delete single line
+                if len(lines) <= 1:
+                    lines = [""]
+                else:
+                    lines.pop(line)
+                    line = min(line, len(lines)-1)
+            elif k == "\x04": # Ctrl+D - Clear
+                wp("Clear buffer? [y/N] > \5\n"+'\n'.join(PREF+ln for ln in lines))
+                if wait(wait_for='yn\n\r') == 'y':
+                    lines = [""]
+                    line = 0
+                    col = 0
             elif k in ("\r", "\n"):
                 old = lines[line]
                 lines.insert(line+1, old[col:])
@@ -102,7 +135,7 @@ def edit_file(a, *, extra=""):
             pass
         with open(fpth) as f:
             fc = f.read()
-        if (outlns := edit_text(fc, "Ctrl+C to save and quit, Ctrl+D to quit without saving"+extra)) is not None:
+        if (outlns := edit_text(fc, "Ctrl+S - Save and exit, Ctrl+X - Quit without saving, Ctrl+G - More help"+extra)) is not None:
             with open(fpth, 'w+') as f:
                 for ln in outlns:
                     f.write(ln+'\n')
