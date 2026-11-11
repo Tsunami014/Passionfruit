@@ -36,7 +36,8 @@ def ensure_exists(pth):
         with open(fpth, "a"):
             pass
 
-def getpths(_, cur, dirsonly=False):
+def getpths(args, dirsonly=False):
+    cur = args[-1]
     if not cur or cur[-1] == '/':
         return ""
     head, sep, prefix = cur.rpartition('/')
@@ -61,8 +62,8 @@ def getpths(_, cur, dirsonly=False):
                 name += '/'
             return dir + name
     return None
-def getdirpths(_, cur):
-    return getpths(_, cur, True)
+def getdirpths(args):
+    return getpths(args, True)
 
 
 def cd(a):
@@ -120,13 +121,53 @@ def ls(a):
         else:
             print(root_pth(fpth))
 
-def rm(a):
-    if not a:
-        print("\033[91mNo files provided!\033[0m")
-        return
+def cp(a, mv=False):
     dirs = '-r' in a
     if dirs:
         a.remove('-r')
+    if len(a) != 2:
+        print("\033[91mNeeds 2 arguments!\033[0m")
+        return
+    fpths = []
+    for pth in a:
+        fpth = parse_pth(pth)
+        if fpth is None:
+            print("\033[91mPath outside root:\033[0m", pth)
+            return
+        fpths.append(fpth)
+    if not os.path.exists(fpths[0]):
+        print("\033[91mSource path does not exist:\033[0m", a[0])
+        return
+    if os.path.isdir(fpths[1]):
+        fpths[1] = fpths[1]+('/' if not fpths[1].endswith('/') else '')+os.path.basename(fpths[0])
+    if os.path.exists(fpths[1]):
+        print("\033[91mDestination path exists:\033[0m", a[1])
+        return
+
+    if os.path.isdir(fpths[0]):
+        if not dirs:
+            cmd = 'move' if mv else 'copy'
+            print("\033[91mPath is a directory:\033[0m", a[0]+f"\n  \033[90m(Run with -r to {cmd} directory contents)\033[0m")
+            return
+        if mv:
+            shutil.move(*fpths)
+        else:
+            shutil.copytree(*fpths)
+    else:
+        if mv:
+            shutil.move(*fpths)
+        else:
+            shutil.copy(*fpths)
+def mv(a):
+    cp(a, True)
+
+def rm(a):
+    dirs = '-r' in a
+    if dirs:
+        a.remove('-r')
+    if not a:
+        print("\033[91mNo files provided!\033[0m")
+        return
     for pth in a:
         fpth = parse_pth(pth)
         if fpth is None:
@@ -182,12 +223,12 @@ def touch(a):
                 os.utime(fpth, None)
 
 def mkdir(a):
-    if not a:
-        print("\033[91mNo directories provided!\033[0m")
-        return
     parents = '-p' in a
     if parents:
         a.remove('-p')
+    if not a:
+        print("\033[91mNo directories provided!\033[0m")
+        return
     for pth in a:
         fpth = parse_pth(pth)
         if fpth is None:

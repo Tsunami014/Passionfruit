@@ -44,14 +44,17 @@ while True:
                                 desc = "Too many arguments!"
                                 fail = True
                         elif argopts is not None:
-                            xtra = len(args) == 0 or s[-1] == ' '
-                            curarg = "" if xtra else args[-1]
-                            out = argopts(len(args)+int(xtra)-1, curarg)
+                            if len(args) == 0 or s[-1] == ' ':
+                                out = argopts(args+[''])
+                            else:
+                                out = argopts(args)
                             if out and out[0] == '\3':
                                 desc = out
                                 fail = True
+                            elif args:
+                                suggest = (out or '')[len(args[-1]):]
                             else:
-                                suggest = (out or '')[len(curarg):]
+                                suggest = out or ''
                 else:
                     for c in sorted(COMMANDS.keys()):
                         if c.startswith(cmd):
