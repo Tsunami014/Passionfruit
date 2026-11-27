@@ -50,7 +50,7 @@ def read_key():
         if ch in (b"\x00", b"\xe0"):
             return {
                 b"H": "up", b"P": "down", b"K": "left", b"M": "right",
-                b"s": "cleft", b"t": "cright", b"S": "del"
+                b"s": "cleft", b"t": "cright", b"S": "del", b"\x0f": "stab"
             }.get(getch(), "")
         ch = ch.decode(errors="ignore")
         return {"\x08": "bs", "\x7f": "cbs"}.get(ch, ch)
@@ -60,16 +60,16 @@ def read_key():
             seq += getch()
         return {
             "A": "up", "B": "down", "C": "right", "D": "left",
-            "1;5C": "cright", "1;5D": "cleft", "3~": "del"
+            "1;5C": "cright", "1;5D": "cleft", "3~": "del", "Z": "stab"
         }.get(seq, "")
     return {"\x7f": "bs", "\x08": "cbs"}.get(ch, ch)
 
-def wait(*prints, wait_for='\r\n'):
+def wait(*prints, wait_for='\r\n', special=False):
     if prints:
         print(*prints, end="", flush=True)
     while True:
         k = read_key()
-        if len(k) == 1 and k in wait_for:
+        if (special or len(k) == 1) and k in wait_for:
             return k
         elif k == "\x03": # Ctrl+C
             print("^C")

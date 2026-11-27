@@ -120,11 +120,19 @@ Press Enter to close help""")
                 while col < ln and curln[col] != " ":
                     col += 1
             elif k == "up":
-                line = max(0, line - 1)
-                col = min(len(lines[line]), col)
+                if line <= 0:
+                    line = 0
+                    col = 0
+                else:
+                    line -= 1
+                    col = min(len(lines[line]), col)
             elif k == "down":
-                line = min(len(lines)-1, line + 1)
-                col = min(len(lines[line]), col)
+                if line >= len(lines)-1:
+                    line = len(lines)-1
+                    col = len(lines[line])
+                else:
+                    line += 1
+                    col = min(len(lines[line]), col)
             elif k == "left":
                 col = max(0, col - 1)
             elif k == "right":
